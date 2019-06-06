@@ -3,14 +3,14 @@ var width = 1200,
   centered;
 
 // Define color scale
-let colorDomain = [50000, 200000];
+let colorDomain = [44, 2000];
 var color = d3.scale
-  .log()
+  .linear()
   .domain(colorDomain)
   // .clamp(true)
-  // .range([d3.rgb("#45a7a6"), d3.rgb("#0c1c1c")]);
-  .range(["green", "red"]);
-
+  .range([d3.rgb("#45a7a6"), d3.rgb("#0c1c1c")]);
+// .range(["green", "red"]);
+console.log(color(80000));
 var projection = d3.geo
   .mercator()
   .scale(10000)
@@ -53,49 +53,66 @@ var bigText = g
   .attr("x", 20)
   .attr("y", 45);
 
-d3.json("./data/dr-map.json", function(error, mapData) {
-  d3.csv("./cleanCoverage.csv", function(error, drData) {
-    // console.log(drData);
+d3.json("./data/dr-municipio.json", data => {
+  console.log(data);
 
-    var features = mapData.features;
+  d3.csv("./data/janData.csv", drData => {
+    let features = data.features;
     let interval = 1000;
     let i = 0;
     let filteredData;
 
-    let janData = drData.filter(data => data.mes === "Enero");
+    console.log(drData);
 
-    // console.log(janData);
-    // console.log(features);
     let cantidadServicios = [],
       poblacionUsuaria = [],
-      valorAutorizado = [];
-    filteredData = features.map((province, i) => {
-      // console.log(janData[i].cantidadServicios);
-      province.properties["cantidadServicios"] = janData[i].cantidadServicios;
-      province.properties["poblacionUsuaria"] = janData[i].poblacionUsuaria;
-      province.properties["valorAutorizado"] = janData[i].valorAutorizado;
-      cantidadServicios.push(Number(janData[i].cantidadServicios));
-      poblacionUsuaria.push(Number(janData[i].poblacionUsuaria));
-      valorAutorizado.push(Number(janData[i].valorAutorizado));
+      valorAutorizado = [],
+      perCapita = [];
 
-      return province;
-      // if (province)
-      // console.log(province.properties.cantidadServicios);
+    // console.log(features);
+    let mapData = features.map((province, i) => {
+      // console.log(provincia.properties.NAME_2.toLowerCase());
+      if (i < drData.length) {
+        console.log(drData[i]["Poblacion Usuaria"]);
+        province.properties["cantidadServicios"] =
+          drData[i]["Cantidad servicios"];
+        province.properties["poblacionUsuaria"] =
+          drData[i]["Poblacion Usuaria"];
+        province.properties["valorAutorizado"] =
+          drData[i]["Valor autorizado (RD$)"];
+        province.properties["perCapita"] = drData[i]["Gasto per capita"];
+        cantidadServicios.push(Number(drData[i]["Cantidad servicios"]));
+        poblacionUsuaria.push(Number(drData[i]["Poblacion Usuaria"]));
+        valorAutorizado.push(Number(drData[i]["Valor autorizado (RD$)"]));
+        perCapita.push(Number(drData[i]["Gasto per capita"]));
+
+        return province;
+      }
     });
 
-    // console.log(filteredData);
-    // console.log(cantidadServicios);
+    // console.log(mapData);
 
-    // console.log(cantidadServicios);
+    //     let cantidadServicios = [],
+    //       poblacionUsuaria = [],
+    //       valorAutorizado = [];
+    //     filteredData = features.map((province, i) => {
+    //       // console.log(janData[i].cantidadServicios);
+    //       province.properties["cantidadServicios"] = janData[i].cantidadServicios;
+    //       province.properties["poblacionUsuaria"] = janData[i].poblacionUsuaria;
+    //       province.properties["valorAutorizado"] = janData[i].valorAutorizado;
+    //       cantidadServicios.push(Number(janData[i].cantidadServicios));
+    //       poblacionUsuaria.push(Number(janData[i].poblacionUsuaria));
+    //       valorAutorizado.push(Number(janData[i].valorAutorizado));
 
-    // Update color scale domain based on data
-    //   color.domain([0, d3.max(features, nameLength)]);
-    color.domain(colorDomain);
+    //       return province;
+    //       // if (province)
+    //       // console.log(province.properties.cantidadServicios);
+    //     });
 
     // Draw each province as a path
     mapLayer
       .selectAll("path")
-      .data(filteredData)
+      .data(mapData)
       .enter()
       .append("path")
       .attr("d", path)
@@ -113,81 +130,144 @@ d3.json("./data/dr-map.json", function(error, mapData) {
       .style("font-size", "40px")
       .attr("x", 50)
       .attr("y", 105);
-
-    // console.log(drData);
-    function colorMap(month) {
-      // console.log(month);
-
-      $("#month").empty();
-      $("#month").remove();
-      d3.select("#map")
-        .append("svg")
-        .attr("id", "month")
-        .append("text")
-        .text(`${month} 2018`)
-        .style("fill", "black")
-        .style("opacity", 0.4)
-        .style("font-size", "40px")
-        .attr("x", 20)
-        .attr("y", 150);
-
-      let janData = drData.filter(data => data.mes === month);
-
-      // console.log(janData);
-      // console.log(features);
-      let cantidadServicios = [],
-        poblacionUsuaria = [],
-        valorAutorizado = [];
-      filteredData = features.map((province, i) => {
-        // console.log(janData[i].cantidadServicios);
-        province.properties["cantidadServicios"] = janData[i].cantidadServicios;
-        province.properties["poblacionUsuaria"] = janData[i].poblacionUsuaria;
-        province.properties["valorAutorizado"] = janData[i].valorAutorizado;
-        cantidadServicios.push(Number(janData[i].cantidadServicios));
-        poblacionUsuaria.push(Number(janData[i].poblacionUsuaria));
-        valorAutorizado.push(Number(janData[i].valorAutorizado));
-
-        return province;
-        // if (province)
-        // console.log(province.properties.cantidadServicios);
-      });
-
-      mapLayer
-        .selectAll("path")
-        .transition()
-        .duration(400)
-        .style("fill", function(d) {
-          // console.log(color(Number(d.properties.cantidadServicios)));
-          return color(Number(d.properties.cantidadServicios));
-        });
-      // mapLayer
-      //   .selectAll("path")
-      //   .data(filteredData)
-      //   .enter()
-      //   .attr("d",d=> {
-      //     console.log(d);
-      //   });
-    }
-
-    setInterval(function() {
-      // console.log(i);
-      let months = ["Enero", "Febrero", "Marzo", "Abril"];
-      // console.log(data[0]);
-      colorMap(months[i]);
-      i = i + 1;
-
-      if (i === 4) {
-        i = 0;
-      }
-    }, 2000);
   });
 });
+
+// d3.json("./data/dr-map.json", function(error, mapData) {
+//   d3.csv("./data/cleanCoverage.csv", function(error, drData) {
+//     // console.log(drData);
+
+//     var features = mapData.features;
+//     let interval = 1000;
+//     let i = 0;
+//     let filteredData;
+
+//     let janData = drData.filter(data => data.mes === "Enero");
+
+//     // console.log(janData);
+//     // console.log(features);
+//     let cantidadServicios = [],
+//       poblacionUsuaria = [],
+//       valorAutorizado = [];
+//     filteredData = features.map((province, i) => {
+//       // console.log(janData[i].cantidadServicios);
+//       province.properties["cantidadServicios"] = janData[i].cantidadServicios;
+//       province.properties["poblacionUsuaria"] = janData[i].poblacionUsuaria;
+//       province.properties["valorAutorizado"] = janData[i].valorAutorizado;
+//       cantidadServicios.push(Number(janData[i].cantidadServicios));
+//       poblacionUsuaria.push(Number(janData[i].poblacionUsuaria));
+//       valorAutorizado.push(Number(janData[i].valorAutorizado));
+
+//       return province;
+//       // if (province)
+//       // console.log(province.properties.cantidadServicios);
+//     });
+
+//     // console.log(filteredData);
+//     // console.log(cantidadServicios);
+
+//     // console.log(cantidadServicios);
+
+//     // Update color scale domain based on data
+//     //   color.domain([0, d3.max(features, nameLength)]);
+//     color.domain(colorDomain);
+
+//     // Draw each province as a path
+//     mapLayer
+//       .selectAll("path")
+//       .data(filteredData)
+//       .enter()
+//       .append("path")
+//       .attr("d", path)
+//       .attr("vector-effect", "non-scaling-stroke")
+//       .on("mouseover", mouseover)
+//       .on("mouseout", mouseout)
+//       .on("click", clicked)
+//       .style("fill", fillFn);
+
+//     d3.select("#title")
+//       .attr("width", width)
+//       .append("text")
+//       .text("Cobertura de Servicios de Salud Régimen Subsidiado")
+//       .style("fill", "black")
+//       .style("font-size", "40px")
+//       .attr("x", 50)
+//       .attr("y", 105);
+
+//     // console.log(drData);
+//     function colorMap(month) {
+//       // console.log(month);
+
+//       $("#month").empty();
+//       $("#month").remove();
+//       d3.select("#map")
+//         .append("svg")
+//         .attr("id", "month")
+//         .append("text")
+//         .text(`${month} 2018`)
+//         .style("fill", "black")
+//         .style("opacity", 0.1)
+//         .style("font-size", "40px")
+//         .attr("x", 20)
+//         .attr("y", 150);
+
+//       let janData = drData.filter(data => data.mes === month);
+
+//       // console.log(janData);
+//       // console.log(features);
+//       let cantidadServicios = [],
+//         poblacionUsuaria = [],
+//         valorAutorizado = [];
+//       filteredData = features.map((province, i) => {
+//         // console.log(janData[i].cantidadServicios);
+//         province.properties["cantidadServicios"] = janData[i].cantidadServicios;
+//         province.properties["poblacionUsuaria"] = janData[i].poblacionUsuaria;
+//         province.properties["valorAutorizado"] = janData[i].valorAutorizado;
+//         cantidadServicios.push(Number(janData[i].cantidadServicios));
+//         poblacionUsuaria.push(Number(janData[i].poblacionUsuaria));
+//         valorAutorizado.push(Number(janData[i].valorAutorizado));
+
+//         return province;
+//         // if (province)
+//         // console.log(province.properties.cantidadServicios);
+//       });
+
+//       mapLayer
+//         .selectAll("path")
+//         .transition()
+//         .duration(400)
+//         .style("fill", function(d) {
+//           // console.log(color(Number(d.properties.cantidadServicios)));
+//           return color(Number(d.properties.cantidadServicios));
+//         });
+//       // mapLayer
+//       //   .selectAll("path")
+//       //   .data(filteredData)
+//       //   .enter()
+//       //   .attr("d",d=> {
+//       //     console.log(d);
+//       //   });
+//     }
+
+//     setInterval(function() {
+//       // console.log(i);
+//       let months = ["Enero", "Febrero", "Marzo", "Abril"];
+//       // console.log(data[0]);
+//       colorMap(months[i]);
+//       i = i + 1;
+
+//       if (i === 4) {
+//         i = 0;
+//       }
+//     }, 2000);
+//   });
+// });
 
 // Get province name
 function nameFn(d) {
   console.log(color(Number(d.properties.cantidadServicios)));
   return d && d.properties
-    ? `${d.properties.NAME_1}, ${d.properties.cantidadServicios}`
+    ? `${d.properties.NAME_2}, ${d.properties.perCapita}`
     : null;
 }
 
@@ -200,10 +280,15 @@ function nameLength(d) {
 }
 
 // Get province color
-function fillFn(d) {
+function fillFn(d, i) {
+  // console.log(d);
+  // console.log(i * 6000 + i);
+  // console.log(color(i * 6000 + i));
   // console.log(d.properties.cantidadServicios);
   // console.log(color(Number(d.properties.cantidadServicios)));
-  return color(Number(d.properties.cantidadServicios));
+  // return color(Number(d.properties.cantidadServicios));
+
+  return color(+d.properties.perCapita);
 }
 
 // When clicked, zoom in

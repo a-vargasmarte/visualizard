@@ -2,29 +2,23 @@
   fill: #eee;
   pointer-events: all;
 }
-
 .map-layer {
   fill: #fff;
   stroke: #aaa;
 }
-
 .effect-layer {
   pointer-events: none;
 }
-
-
-
 text.big-text {
   font-size: 30px;
   font-weight: 400;
 }
-
 .effect-layer text,
 text.dummy-text {
   font-size: 12px;
 } */
 
 .background {
-  fill: #eee;
-  pointer-events: all;
-}
+	fill: #eee;
+	pointer-events: all;
+  }

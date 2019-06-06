@@ -1,20 +1,71 @@
 <!DOCTYPE html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="description" content="" />
-  <title>VisualizaRD</title>
-  <!-- Bootstrap Core CSS -->
-  <!-- <link rel="stylesheet" href="css/bootstrap.min.css" /> -->
-  <!-- Custom CSS -->
-  <link rel="stylesheet" href="css/style.css" />
-</head>
-<body>
-  <nav class="navbar navbar-default"></nav>
-  <svg id='title'></svg>
-  <svg id='map'></svg>
-  <svg id="year"></svg>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="description" content="" />
+    <title>Visualizard</title>
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <!-- jQuery UI CSS -->
+    <link rel="stylesheet" href="css/jquery-ui.min.css" />
+    <link rel="stylesheet" href="css/jquery-ui.structure.min.css" />
+    <link rel="stylesheet" href="css/jquery-ui.theme.min.css" />
+    <!-- D3 Tooltip CSS -->
+    <link rel="stylesheet" href="css/d3-tip.css" />
+    <!-- Custom styling -->
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
 
-  <script src="https://d3js.org/d3.v3.min.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-  <script src="./app.js"></script>
-</body>
+  <body>
+    <nav class="navbar navbar-default">
+      <div class="container">
+        <!-- <a class="navbar-brand" href="#"><img id="logo" src="img/logo.png"></a>       -->
+      </div>
+    </nav>
+
+    <!-- Bootstrap grid setup -->
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6">
+          <button id="play-button" class="btn btn-primary">Play</button>
+          <button id="reset-button" class="btn btn-primary">Reset</button>
+          <div id="slider-div">
+            <label>
+              Start Date: <span id="dateLabel1">2017-01</span> -
+              <span id="dateLabel2">2019-05</span>
+            </label>
+            <div id="date-slider"></div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <select id="continent-select" class="form-control">
+            <option selected value="all">All</option>
+            <option value="REGION 0">Region 0</option>
+            <option value="REGION I">Region 1</option>
+            <option value="REGION II">Region 2</option>
+            <option value="REGION III">Region 3</option>
+            <option value="REGION IV">Region 4</option>
+            <option value="REGION V">Region 5</option>
+            <option value="REGION VI">Region 6</option>
+            <option value="REGION VII">Region 7</option>
+            <option value="REGION VIII">Region 8</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div id="chart-area"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- External JS libraries -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/d3-tip.js"></script>
+    <!-- Custom JS -->
+    <script src="js/main.js"></script>
+  </body>
+</html>
