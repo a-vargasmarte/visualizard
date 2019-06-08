@@ -277,7 +277,7 @@ $("#play-button").on("click", function() {
   var button = $(this);
   if (button.text() == "Play") {
     button.text("Pause");
-    interval = setInterval(step, 500);
+    interval = setInterval(step, 300);
   } else {
     button.text("Play");
     clearInterval(interval);
@@ -334,7 +334,7 @@ function step() {
 function update(data) {
   // console.log(data);
   // Standard transition time for the visualization
-  var t = d3.transition().duration(500);
+  var t = d3.transition().duration(300);
 
   var continent = $("#continent-select").val();
   // console.log(continent);
