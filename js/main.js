@@ -21,7 +21,9 @@ var g = d3
 
 var time = Number(parseTime("2017-01-01"));
 var interval;
-var formattedData;
+var dataObject;
+let viz;
+let index;
 
 // Tooltip
 var tip = d3
@@ -148,9 +150,15 @@ continents.forEach(function(continent, i) {
 });
 
 d3.csv("data/regionData.csv").then(data => {
-  console.log(data[0]);
+  // console.log(data[0]);
+  var t = d3.transition().duration(100);
 
-  let dataObject = [];
+  var continent = $("#continent-select").val();
+  // console.log(continent);
+
+  sliderValues = $("#date-slider").slider("values");
+
+  dataObject = [];
   let timeArray = data.map(d => {
     return d.time;
   });
@@ -174,41 +182,102 @@ d3.csv("data/regionData.csv").then(data => {
     dataObject.push(rowObject);
   });
 
-  console.log(dataObject);
+  let vizData = [],
+    monthArray = [];
+
+  data = dataObject.map(d => {
+    d.time = Number(parseTime(d.regions[0].time));
+
+    // console.log(formatTime(d.time));
+    monthArray.push(formatTime(d.time));
+
+    // console.log(monthArray);
+
+    return d;
+  });
+
+  monthSet = new Set(monthArray);
+  // console.log(monthSet.entries());
+
+  let uniqueMonths = Array.from(monthSet);
+
+  // console.log(uniqueMonths);
+
+  data.map((d, i) => {
+    // console.log(formatTime(d.regions[0].time));
+
+    uniqueMonths.map(month => {
+      // console.log(month);
+      // console.log(d.regions[0].time.slice(0, -3));
+
+      // console.log(month === d.regions[0].time.slice(0, -3));
+      let vizObject = {
+        regions: [],
+        time: ""
+      };
+
+      if (month === d.regions[0].time.slice(0, -3)) {
+        vizObject.time = month;
+        // console.log(month);
+        vizData.push(vizObject);
+      }
+    });
+  });
+
+  // console.log(vizData);
+
+  data.map((d, i) => {
+    let j = 0;
+
+    while (j < data.length) {
+      if (
+        Number(parseTime(`${vizData[i].time}-01`)) ===
+        Number(parseTime(data[j].regions[0].time))
+      ) {
+        // console.log(data[j].regions[0]);
+        vizData[j].regions.push(data[i].regions[0]);
+      }
+      j = j + 1;
+    }
+  });
+
+  let sorted = vizData.sort((a, b) => {
+    // console.log(Number(parseTime(`${a.time}-01`)), b.time);
+    // console.log(parseTime(a.time), parseTime(b.time));
+    return (
+      Number(parseTime(`${a.time}-01`)) - Number(parseTime(`${b.time}-01`))
+    );
+  });
+
+  const every_nth = (arr, nth) => arr.filter((e, i) => i % nth === nth - 1);
+
+  sorted = every_nth(sorted, 9);
+
+  // console.log(sorted);
+
+  // console.log(sliderValues);
+  // console.log(Number(parseTime(`${sorted[1].time}-01`)) >= sliderValues[0]);
+
+  data = sorted.filter(d => {
+    return sliderValues[0] <= Number(parseTime(`${d.time}-01`));
+  });
+
+  viz = data;
+  // console.log(viz);
+
+  index = time - Number(parseTime("2017-01-01"));
+  // console.log(viz[index]);
 
   //   console.log(cleanData);
-  update(formattedData);
+  update(viz[index]);
 });
 
-// d3.json("data/data.json").then(function(data) {
-//   //   console.log(data);
-
-//   // Clean data
-//   formattedData = data.map(function(year) {
-//     // console.log(year);
-//     return year["countries"]
-//       .filter(function(country) {
-//         var dataExists = country.income && country.life_exp;
-//         return dataExists;
-//       })
-//       .map(function(country) {
-//         country.income = +country.income;
-//         country.life_exp = +country.life_exp;
-//         return country;
-//       });
-//   });
-
-//   //   console.log(formattetimetimetimedData);
-
-//   // First run of the visualization
-//   //   update(formattedData[0]);
-// });
-
 $("#play-button").on("click", function() {
+  // console.log(time);
   var button = $(this);
   if (button.text() == "Play") {
     button.text("Pause");
-    interval = setInterval(step, 100);
+    interval = setInterval(step, 500);
   } else {
     button.text("Play");
     clearInterval(interval);
@@ -216,71 +285,79 @@ $("#play-button").on("click", function() {
 });
 
 // console.log(Number(parseTime("2017-01-01")));
-
+// console.log(viz);
 $("#reset-button").on("click", function() {
-  time = 0;
-  update(formattedData[0]);
+  update(viz[0]);
 });
 
 $("#continent-select").on("change", function() {
-  update(formattedData[time]);
+  // console.log(viz);
+  update(viz);
 });
 
 $("#date-slider").slider({
   range: true,
   max: Number(parseTime("2019-05-01")),
   min: Number(parseTime("2017-01-01")),
-  step: 1,
-  values: [Number(parseTime("2017-01-01")), Number(parseTime("2019-05-01"))],
+  step: 2592000000,
+  values: [Number(parseTime("2017-01-01")), time],
   slide: function(event, ui) {
-    console.log(ui.value);
+    // console.log(viz[index]);
+    // console.log(d3.timeFormat("%m")(Number(parseTime("2017-01-01"))));
     time = ui.value;
-    // console.log(formattedData.time);
-    update(formattedData);
+    // console.log(index);
+    index = d3.timeFormat("%m")(time - Number(parseTime("2017-01-01")));
+
+    update(viz[Number(index)]);
   }
 });
 
 function step() {
-  console.log(formattedData);
+  let slider = $("#date-slider").slider("values");
+  // console.log(slider);
+  // console.log(time - Number(parseTime("2017-01-01")));
+  // console.log(
+  //   (Number(parseTime("2019-05-01")) - Number(parseTime("2017-01-01"))) /
+  //     2592000000
+  // );
   // At the end of our data, loop back
+  // console.log(time);
   time =
-    Number(parseTime("2019-05-01")) < 214
-      ? time + 1
+    time < Number(parseTime("2019-05-01"))
+      ? time + 2592000000
       : Number(parseTime("2017-01-01"));
-  update(formattedData[time]);
+  // console.log(d3.timeFormat("%m")(time - Number(parseTime("2017-01-01"))));
+  index = d3.timeFormat("%m")(time - Number(parseTime("2017-01-01")));
+  update(viz[Number(index)]);
 }
 
 function update(data) {
   // console.log(data);
   // Standard transition time for the visualization
-  var t = d3.transition().duration(100);
+  var t = d3.transition().duration(500);
 
   var continent = $("#continent-select").val();
+  // console.log(continent);
 
   sliderValues = $("#date-slider").slider("values");
-  // console.log(sliderValues);
+  // console.log(continent);
 
-  var data = data
-    .filter(function(d) {
-      if (continent == "all") {
-        return true;
-      } else {
-        return d.continent == continent;
-      }
-    })
-    .filter(d => {
-      let time = parseTime(d.time);
-      // console.log(
-      //   Number(time) >= sliderValues[0] && Number(time) <= sliderValues[1]
-      // );
-      return Number(time) >= sliderValues[0] && Number(time) <= sliderValues[1];
-    });
-  console.log(data);
+  var data = data.regions.filter(function(d) {
+    if (continent == "all") {
+      return true;
+    } else {
+      // console.log(d);
+      return d.region == continent;
+    }
+  });
+
+  // console.log(data);
 
   // JOIN new data with old elements.
+
   var circles = g.selectAll("circle").data(data, function(d) {
-    // console.log(d.subgroup);
-    return d.subgroup;
+    // console.log(d);
+    return d.region;
   });
 
   // EXIT old elements not present in new data.
@@ -295,6 +372,7 @@ function update(data) {
     .append("circle")
     .attr("class", "enter")
     .attr("fill", function(d) {
+      // console.log(d.regions);
       return continentColor(d.region);
     })
     .on("mouseover", tip.show)
@@ -302,7 +380,7 @@ function update(data) {
     .merge(circles)
     .transition(t)
     .attr("cy", function(d) {
-      //   console.log(d);
+      // console.log(d);
       return y(d.services);
     })
     .attr("cx", function(d) {
@@ -313,7 +391,7 @@ function update(data) {
     });
 
   // Update the time label
-  console.log(formatTime(time));
+  // console.log(formatTime(time));
   timeLabel.text(formatTime(time));
   $("#datelabel1").innerHTML = formatTime(time);
 
